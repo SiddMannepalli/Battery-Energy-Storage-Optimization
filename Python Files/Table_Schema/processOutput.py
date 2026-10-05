@@ -1,5 +1,4 @@
-import sys
-sys.path.append(r'C:\Sidd\Battery Optimization Project\Python Files\Table_Schema')
+import os
 
 from sqlalchemy import create_engine, select, func
 from sqlalchemy.orm import sessionmaker
@@ -9,7 +8,8 @@ from createOutputDetailsTable import Ercot_RT_Prices as output_details
 
 class outputProcessor():
     def __init__(self):
-        engine = create_engine(r'sqlite:///C:\Sidd\Battery Optimization Project\Python Files\Table_Schema\batteryDB.db', echo=False)
+        db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'batteryDB.db')
+        engine = create_engine(f'sqlite:///{db_path}', echo=False)
         self.Session = sessionmaker(bind=engine)
         self.session = self.Session()
 
