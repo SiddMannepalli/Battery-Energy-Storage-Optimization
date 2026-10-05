@@ -18,20 +18,20 @@ class batteryHeader:
     '''def __init__(self):
         self.session = connection.sessionManager.session'''
     def __init__(self):
-        engine = create_engine(r'sqlite:///C:\Sidd\Battery Optimization Project\Python Files\Table_Schema\batteryDB.db', echo=False)
+        engine = create_engine(r'sqlite:////Users/siddm/Library/CloudStorage/OneDrive-Personal/Battery-Energy-Storage-Optimization/Python Files/Table_Schema/batteryDB.db', echo=False)
         self.Session = sessionmaker(bind=engine)
-        self.session = self.Session()
+        #self.session = self.Session()
     def getBatteryHeader(self, battery_id=1):
         '''with self.session as session:
             #batteryHeader = session.query(BatteryHeader).filter_by(battery_id=battery_id).one()
             batteryHeader = select(BatteryHeader).where(BatteryHeader.battery_id == battery_id)
             return batteryHeader
         '''
-        with self.session as session:
+        with self.Session() as session:
             #Generate SQL statement 
             stmt = select(BatteryHeader).where(BatteryHeader.battery_id == battery_id)
             #Execute SQL statement, this returns a sequence of BatteryHeader objects
-            battery = self.session.scalars(stmt).all()
+            battery = session.scalars(stmt).all()
             #Returing a sequence of BatteryHeader Objects
             return battery
 

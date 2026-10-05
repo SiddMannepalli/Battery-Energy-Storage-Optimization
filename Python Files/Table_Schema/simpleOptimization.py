@@ -1,10 +1,21 @@
 import math
 import pulp
+import os
+import sqlite3
 from getBatteryDetails import batteryDetails, BatteryDetails
 from getBatteryHeader import batteryHeader
 from getErcotDAPrices import ercotDAPrices 
 from processOutput import outputProcessor
 from datetime import datetime
+
+script_dir = os.path.dirname(os.path.abspath(__file__))
+#db_path = os.path.join(script_dir, "batteryDB.db")
+db_path = "/Users/siddm/Library/CloudStorage/OneDrive-Personal/Battery-Energy-Storage-Optimization/Python Files/Table_Schema/batteryDB.db"
+conn = sqlite3.connect(db_path)
+#cursor = conn.cursor()
+#cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
+#print("Tables Python actually sees:", cursor.fetchall())
+
 
 BATTERY_ID = 1
 DELIVERY_DATE    = "3/12/2026"

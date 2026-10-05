@@ -20,7 +20,7 @@ class ercotRTPrices:
     '''def __init__(self):
         self.session = connection.sessionManager.session'''
     def __init__(self):
-        engine = create_engine(r'sqlite:///C:\Sidd\Battery Optimization Project\Python Files\Table_Schema\batteryDB.db', echo=False)
+        engine = create_engine(r'sqlite:////Users/siddm/Library/CloudStorage/OneDrive-Personal/Battery-Energy-Storage-Optimization/Python Files/Table_Schema/batteryDB.db', echo=False)
         self.Session = sessionmaker(bind=engine)
         self.session = self.Session()
     def getRTPrices(self, date, settlement_point="HB_HOUSTON"):

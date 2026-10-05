@@ -4,7 +4,10 @@ from sqlalchemy import create_engine
 #engine = create_engine('sqlite:///C:\\Sidd\\Battery Optimization Project\\batteryDB.db', echo=False)
 engine = create_engine('sqlite:///batteryDB.db', echo=False)
 
-csv_file_path = 'C:\\Sidd\\Battery Optimization Project\\CSV Data Files\\BatteryHeaderCSV.csv'
+#Old file path on old windows laptop
+#csv_file_path = 'C:\\Sidd\\Battery Optimization Project\\CSV Data Files\\BatteryHeaderCSV.csv'
+#New file path on Macbook
+csv_file_path = '/Users/siddm/Library/CloudStorage/OneDrive-Personal/Battery-Energy-Storage-Optimization/CSV Data Files/BatteryHeaderCSV.csv'
 
 df = pd.read_csv(csv_file_path)
 
