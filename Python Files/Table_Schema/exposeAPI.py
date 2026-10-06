@@ -1,8 +1,9 @@
+import os
 import sys
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
-sys.path.append(r"C:\Sidd\Battery Optimization Project\Python Files\Table_Schema")
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from processOutput import outputProcessor
 from getBatteryHeader import batteryHeader, BatteryHeader
@@ -42,7 +43,8 @@ def format_result(row):
 
 @app.get("/batteries")
 def get_all_batteries():
-    rows = batteryHeaderClient.session.scalars(select(BatteryHeader)).all()
+    with batteryHeaderClient.Session() as session:
+        rows = session.scalars(select(BatteryHeader)).all()
     return [{"battery_id": b.battery_id, "name": b.name, "location": b.location, "owner": b.owner, "iso": b.iso} for b in rows]
 
 

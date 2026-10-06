@@ -1,16 +1,12 @@
-import os
-
-from sqlalchemy import create_engine, select, func
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy import select, func
+from db import Session
 from createOutputHeaderTable import outputHeader as output_header
 from createOutputDetailsTable import Ercot_RT_Prices as output_details
 
 
 class outputProcessor():
     def __init__(self):
-        db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'batteryDB.db')
-        engine = create_engine(f'sqlite:///{db_path}', echo=False)
-        self.Session = sessionmaker(bind=engine)
+        self.Session = Session
         self.session = self.Session()
 
     def getMaxVersion(self, battery_id, date):

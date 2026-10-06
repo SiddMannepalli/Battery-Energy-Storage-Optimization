@@ -1,3 +1,4 @@
+from db import Session
 from sqlalchemy import String
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from sqlalchemy import create_engine, select
@@ -18,8 +19,7 @@ class batteryHeader:
     '''def __init__(self):
         self.session = connection.sessionManager.session'''
     def __init__(self):
-        engine = create_engine(r'sqlite:////Users/siddm/Library/CloudStorage/OneDrive-Personal/Battery-Energy-Storage-Optimization/Python Files/Table_Schema/batteryDB.db', echo=False)
-        self.Session = sessionmaker(bind=engine)
+        self.Session = Session
         #self.session = self.Session()
     def getBatteryHeader(self, battery_id=1):
         '''with self.session as session:
