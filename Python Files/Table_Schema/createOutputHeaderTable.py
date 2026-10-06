@@ -1,15 +1,12 @@
 from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime, ForeignKey, Boolean
 from sqlalchemy.ext.declarative import declarative_base
-import sqlite3
 from datetime import datetime
 from typing import Optional
 from sqlalchemy import String, ForeignKey
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from createBatteryHeaderTable import Base, Battery_Header
 
-db_path = '/Users/siddm/Library/CloudStorage/OneDrive-Personal/Battery-Energy-Storage-Optimization/Python Files/Table_Schema/batteryDB.db'
-engine = create_engine(f'sqlite:///{db_path}', connect_args={'timeout': 30, 'isolation_level': None}, echo=True)
-#engine = create_engine('sqlite:///batteryDB.db', echo=True)
+from db import engine
 
 #class Base(DeclarativeBase):
 #    pass

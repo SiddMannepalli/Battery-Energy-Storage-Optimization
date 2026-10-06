@@ -1,3 +1,4 @@
+from db import Session
 from sqlalchemy import create_engine, String
 from sqlalchemy.orm import sessionmaker, DeclarativeBase, Mapped, mapped_column
 #import connection
@@ -21,8 +22,7 @@ class ercotDAPrices:
     '''def __init__(self):
         self.session = connection.sessionManager.session'''
     def __init__(self):
-        engine = create_engine(r'sqlite:////Users/siddm/Library/CloudStorage/OneDrive-Personal/Battery-Energy-Storage-Optimization/Python Files/Table_Schema/batteryDB.db', echo=False)
-        self.Session = sessionmaker(bind=engine)
+        self.Session = Session
         #self.session = self.Session()
 
     def getDAPrices(self, priceDate, settlement_point="HB_HOUSTON"):
@@ -38,6 +38,9 @@ class ercotDAPrices:
             stmt = select(ErcotDaPrices).where(ErcotDaPrices.delivery_date == date_str, ErcotDaPrices.settlement_point == settlement_point).order_by(ErcotDaPrices.hour_ending)
             #Execute SQL statement, this returns a sequence of ErcotDaPrices objects            
             rows = session.scalars(stmt).all()
+            #hour_ending is text ('1:00', '10:00', '24:00:00'), so the database sorts it alphabetically
+            #('10:00' before '1:00'); re-sort by the hour number so hours run 1 to 24 in order
+            rows = sorted(rows, key=lambda r: int(r.hour_ending.split(':')[0]))
             print(stmt)
             print(rows[0].delivery_date)
             return [dict(r.__dict__) for r in rows]

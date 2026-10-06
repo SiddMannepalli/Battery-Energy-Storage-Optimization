@@ -1,0 +1,8 @@
+sqlalchemy
+pandas
+pulp
+requests
+fastapi
+uvicorn
+psycopg[binary]
+python-dotenv
