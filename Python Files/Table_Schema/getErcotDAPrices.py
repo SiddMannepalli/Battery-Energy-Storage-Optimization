@@ -5,6 +5,7 @@ from sqlalchemy import create_engine, select
 from sqlalchemy.orm import sessionmaker
 from datetime import date, datetime
 
+
 class Base(DeclarativeBase):
     pass
 

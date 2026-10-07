@@ -3,6 +3,7 @@ from sqlalchemy.orm import sessionmaker, DeclarativeBase, Mapped, mapped_column
 from sqlalchemy import create_engine, select   
 from sqlalchemy.orm import sessionmaker
 
+
 class Base(DeclarativeBase):
     pass
 

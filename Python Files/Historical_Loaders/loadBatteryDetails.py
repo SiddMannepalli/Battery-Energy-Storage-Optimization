@@ -1,6 +1,7 @@
 import pandas as pd
 from sqlalchemy import create_engine
 
+
 #engine = create_engine('sqlite:///C:\\Sidd\\Battery Optimization Project\\batteryDB.db', echo=False)
 engine = create_engine('sqlite:///batteryDB.db', echo=False)
 #Old file path on old windows laptop
