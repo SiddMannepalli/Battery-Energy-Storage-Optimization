@@ -1,2 +1,2 @@
 [tool.vercel]
-entrypoint = "Python Files.Table_Schema.exposeAPI:app
+entrypoint = "Python_Files.Table_Schema.exposeAPI:app"
