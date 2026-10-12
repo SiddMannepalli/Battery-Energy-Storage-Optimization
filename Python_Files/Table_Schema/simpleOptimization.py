@@ -1,20 +1,10 @@
 import math
 import pulp
-import os
-import sqlite3
 from getBatteryDetails import batteryDetails, BatteryDetails
 from getBatteryHeader import batteryHeader
 from getErcotDAPrices import ercotDAPrices 
 from processOutput import outputProcessor
 from datetime import datetime
-
-script_dir = os.path.dirname(os.path.abspath(__file__))
-#db_path = os.path.join(script_dir, "batteryDB.db")
-db_path = "/Users/siddm/Library/CloudStorage/OneDrive-Personal/Battery-Energy-Storage-Optimization/Python Files/Table_Schema/batteryDB.db"
-conn = sqlite3.connect(db_path)
-#cursor = conn.cursor()
-#cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
-#print("Tables Python actually sees:", cursor.fetchall())
 
 
 BATTERY_ID = 1
@@ -115,7 +105,7 @@ for t in hours:
 print("-" * 78)
 print(f"{'Total Revenue':>66}  {total_revenue:>10.2f}")
 
-#Load data into SQLite database
+#Load data into the database
 schedule = []
 for t in hours:
     ch  = pulp.value(charge_kw[t])       or 0.0

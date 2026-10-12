@@ -1,3 +1,4 @@
+from db import Session
 from requests import session
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from sqlalchemy import create_engine, select
@@ -29,8 +30,7 @@ class batteryDetails:
     '''def __init__(self):
         self.session = connection.sessionManager.session'''
     def __init__(self):
-        engine = create_engine(r'sqlite:////Users/siddm/Library/CloudStorage/OneDrive-Personal/Battery-Energy-Storage-Optimization/Python Files/Table_Schema/batteryDB.db', echo=False)
-        self.Session = sessionmaker(bind=engine)
+        self.Session = Session
         self.session = self.Session()
 
     def getBatteryDetails(self, battery_id=BATTERY_ID):

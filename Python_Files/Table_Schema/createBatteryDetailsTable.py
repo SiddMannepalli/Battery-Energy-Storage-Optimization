@@ -1,6 +1,5 @@
 from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime, ForeignKey, Boolean
 from sqlalchemy.ext.declarative import declarative_base
-import sqlite3
 from typing import Optional
 from sqlalchemy import String, ForeignKey
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
@@ -8,8 +7,12 @@ from createBatteryHeaderTable import Base
 from sqlalchemy.schema import CreateTable
 
 
+<<<<<<< HEAD:Python_Files/Table_Schema/createBatteryDetailsTable.py
 #engine = create_engine('sqlite:///batteryDB.db', echo=True)
 engine = create_engine('sqlite:////Users/siddm/Library/CloudStorage/OneDrive-Personal/Battery-Energy-Storage-Optimization/Python_Files/Table_Schema/batteryDB.db', echo=True)
+=======
+from db import engine
+>>>>>>> 4e5f386d1a596fadb7e2ef62a80fa5ee0db5a66e:Python Files/Table_Schema/createBatteryDetailsTable.py
 
 
 #class Base(DeclarativeBase):

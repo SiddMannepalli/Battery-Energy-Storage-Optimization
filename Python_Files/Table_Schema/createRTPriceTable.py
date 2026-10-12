@@ -1,7 +1,6 @@
 import pandas as pd
 from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime, ForeignKey, Boolean
 from sqlalchemy.ext.declarative import declarative_base
-import sqlite3
 from datetime import datetime
 from typing import Optional
 from sqlalchemy import String, ForeignKey
@@ -9,7 +8,7 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from createBatteryHeaderTable import Base
 
 
-engine = create_engine('sqlite:///batteryDB.db', echo=False)
+from db import engine
 
 #class Base(DeclarativeBase):
 #    pass
