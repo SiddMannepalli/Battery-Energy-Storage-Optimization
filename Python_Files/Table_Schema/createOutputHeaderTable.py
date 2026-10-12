@@ -6,13 +6,7 @@ from sqlalchemy import String, ForeignKey
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from createBatteryHeaderTable import Base, Battery_Header
 
-<<<<<<< HEAD:Python_Files/Table_Schema/createOutputHeaderTable.py
-db_path = '/Users/siddm/Library/CloudStorage/OneDrive-Personal/Battery-Energy-Storage-Optimization/Python_Files/Table_Schema/batteryDB.db'
-engine = create_engine(f'sqlite:///{db_path}', connect_args={'timeout': 30, 'isolation_level': None}, echo=True)
-#engine = create_engine('sqlite:///batteryDB.db', echo=True)
-=======
 from db import engine
->>>>>>> 4e5f386d1a596fadb7e2ef62a80fa5ee0db5a66e:Python Files/Table_Schema/createOutputHeaderTable.py
 
 #class Base(DeclarativeBase):
 #    pass

@@ -4,8 +4,5 @@ pulp
 requests
 fastapi
 uvicorn
-<<<<<<< HEAD
-=======
 psycopg[binary]
 python-dotenv
->>>>>>> 4e5f386d1a596fadb7e2ef62a80fa5ee0db5a66e
