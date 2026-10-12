@@ -9,7 +9,7 @@ from sqlalchemy.schema import CreateTable
 
 
 #engine = create_engine('sqlite:///batteryDB.db', echo=True)
-engine = create_engine('sqlite:////Users/siddm/Library/CloudStorage/OneDrive-Personal/Battery-Energy-Storage-Optimization/Python Files/Table_Schema/batteryDB.db', echo=True)
+engine = create_engine('sqlite:////Users/siddm/Library/CloudStorage/OneDrive-Personal/Battery-Energy-Storage-Optimization/Python_Files/Table_Schema/batteryDB.db', echo=True)
 
 
 #class Base(DeclarativeBase):
