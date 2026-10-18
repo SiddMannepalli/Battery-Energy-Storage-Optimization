@@ -3,6 +3,23 @@ from dotenv import load_dotenv
 from sqlalchemy import create_engine, make_url, text
 from sqlalchemy.orm import sessionmaker
 
+import os
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+
+TURSO_DATABASE_URL = os.environ["TURSO_DATABASE_URL"]
+TURSO_AUTH_TOKEN = os.environ["TURSO_AUTH_TOKEN"]
+
+engine = create_engine(
+    f"sqlite+libsql://{TURSO_DATABASE_URL}?secure=true",
+    connect_args={
+        "auth_token": TURSO_AUTH_TOKEN,
+    },
+)
+
+Session = sessionmaker(bind=engine)
+
+'''
 #Folder this file lives in, and the top-level project folder (two levels up)
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_DIR = os.path.abspath(os.path.join(SCRIPT_DIR, '..', '..'))
@@ -35,3 +52,4 @@ createDatabaseIfMissing(DATABASE_URL)
 #One engine and session factory shared by every file in the project
 engine = create_engine(DATABASE_URL, echo=False)
 Session = sessionmaker(bind=engine)
+'''

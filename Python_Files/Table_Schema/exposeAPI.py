@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import select
 
 # Fix 1: Added leading slash for valid absolute pathing on macOS
-sys.path.append("/Users/siddm/Library/CloudStorage/OneDrive-Personal/Battery-Energy-Storage-Optimization/Python_Files/Table_Schema")
+#sys.path.append("/Users/siddm/Library/CloudStorage/OneDrive-Personal/Battery-Energy-Storage-Optimization/Python_Files/Table_Schema")
 
 from processOutput import outputProcessor
 from getBatteryHeader import BatteryHeaderHelper, BatteryHeader
@@ -86,11 +86,11 @@ def get_optimization_by_date(date: str):
     results = processor.getOptDataDate(date)
     return [format_result(row) for row in results]
 
-
+'''
 # Fix 4: Moved execution entry block to the absolute bottom of the file
 if __name__ == "__main__":
     uvicorn.run(app, host="127.0.0.1", port=8000)
-
+'''
 '''import sys
 import uvicorn
 from fastapi import FastAPI, HTTPException
