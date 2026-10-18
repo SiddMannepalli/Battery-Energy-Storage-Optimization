@@ -1,2 +1,19 @@
+[project]
+name = "battery-energy-storage-optimization"
+version = "0.1.0"
+requires-python = ">=3.12"
+# Keep in sync with requirements.txt (used for local installs)
+dependencies = [
+    "sqlalchemy",
+    "pandas",
+    "pulp",
+    "requests",
+    "fastapi",
+    "uvicorn",
+    "psycopg[binary]",
+    "python-dotenv",
+    "sqlalchemy-libsql",
+]
+
 [tool.vercel]
 entrypoint = "Python_Files.Table_Schema.exposeAPI:app"

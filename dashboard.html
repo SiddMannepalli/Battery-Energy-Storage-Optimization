@@ -47,7 +47,7 @@
   <div id="root"></div>
 
   <script type="text/babel">
-    const API = "http://127.0.0.1:8000";
+    const API = window.location.protocol === "file:" ? "http://127.0.0.1:8000" : "";
     const { useState, useEffect } = React;
     const { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } = Recharts;
 
@@ -269,7 +269,7 @@
   <div id="root"></div>
 
   <script type="text/babel">
-    const API = "http://127.0.0.1:8000";
+    const API = window.location.protocol === "file:" ? "http://127.0.0.1:8000" : "";
     const { useState, useEffect, useRef } = React;
 
     function ChartWrapper({ data, chartTab }) {

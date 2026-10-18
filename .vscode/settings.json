@@ -2,7 +2,7 @@
     "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",
     "python.terminal.activateEnvironment": true,
     "python.analysis.extraPaths": [
-        "${workspaceFolder}/Python Files/Table_Schema"
+        "${workspaceFolder}/Python_Files/Table_Schema"
     ],
     "python-envs.defaultEnvManager": "ms-python.python:system"
 }

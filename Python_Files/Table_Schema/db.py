@@ -3,11 +3,12 @@ from dotenv import load_dotenv
 from sqlalchemy import create_engine, make_url, text
 from sqlalchemy.orm import sessionmaker
 
-import os
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+#Read <project>/.env when running locally (on Vercel the variables come from Project Settings)
+PROJECT_DIR = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
+load_dotenv(os.path.join(PROJECT_DIR, '.env'))
 
-TURSO_DATABASE_URL = os.environ["TURSO_DATABASE_URL"]
+#Turso gives the URL as libsql://<db>.turso.io; strip the scheme so it isn't doubled below
+TURSO_DATABASE_URL = os.environ["TURSO_DATABASE_URL"].removeprefix("libsql://")
 TURSO_AUTH_TOKEN = os.environ["TURSO_AUTH_TOKEN"]
 
 engine = create_engine(

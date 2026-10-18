@@ -1,11 +1,13 @@
+import os
 import sys
 import uvicorn
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import select
 
-# Fix 1: Added leading slash for valid absolute pathing on macOS
-#sys.path.append("/Users/siddm/Library/CloudStorage/OneDrive-Personal/Battery-Energy-Storage-Optimization/Python_Files/Table_Schema")
+# Fix 1: Make sibling modules (processOutput, getBatteryHeader, db) importable on Vercel,
+# which loads this file as Python_Files.Table_Schema.exposeAPI from the project root
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from processOutput import outputProcessor
 from getBatteryHeader import BatteryHeaderHelper, BatteryHeader

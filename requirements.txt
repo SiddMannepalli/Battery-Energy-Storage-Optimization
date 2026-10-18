@@ -6,5 +6,5 @@ fastapi
 uvicorn
 psycopg[binary]
 python-dotenv
-saqlalchemy-libsql
+sqlalchemy-libsql
 
