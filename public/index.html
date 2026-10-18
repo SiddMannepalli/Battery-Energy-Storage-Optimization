@@ -1,439 +1,883 @@
-<!--
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Battery Optimization Dashboard</title>
-  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
-  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-  <script src="https://unpkg.com/recharts@2.12.0/umd/Recharts.js"></script>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: sans-serif; background: #f0f2f5; color: #1a1a2e; }
-    header { background: #1a1a2e; color: white; padding: 18px 32px; font-size: 1.3rem; font-weight: 700; }
-    .container { max-width: 1200px; margin: 0 auto; padding: 24px; }
-    .card { background: white; border-radius: 10px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.07); }
-    .card h2 { font-size: 1rem; font-weight: 600; margin-bottom: 14px; color: #444; text-transform: uppercase; letter-spacing: 0.05em; }
-    .battery-list { display: flex; gap: 12px; flex-wrap: wrap; }
-    .battery-chip { background: #e8f0fe; border: 2px solid transparent; border-radius: 8px; padding: 10px 18px; cursor: pointer; font-weight: 600; transition: all 0.15s; }
-    .battery-chip.active { border-color: #1a73e8; background: #1a73e8; color: white; }
-    .controls { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
-    select, button { padding: 8px 14px; border-radius: 6px; border: 1px solid #ccc; font-size: 0.9rem; cursor: pointer; }
-    button { background: #1a73e8; color: white; border: none; font-weight: 600; }
-    button:hover { background: #1558b0; }
-    table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
-    th { background: #f8f9fa; text-align: left; padding: 10px 12px; border-bottom: 2px solid #e0e0e0; font-weight: 600; color: #555; }
-    td { padding: 9px 12px; border-bottom: 1px solid #f0f0f0; }
-    tr:hover td { background: #fafafa; }
-    .action-charge { color: #1a73e8; font-weight: 600; }
-    .action-discharge { color: #e53935; font-weight: 600; }
-    .action-hold { color: #888; }
-    .revenue-pos { color: #2e7d32; font-weight: 600; }
-    .revenue-neg { color: #c02626; font-weight: 600; }
-    .summary-row { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 20px; }
-    .summary-card { flex: 1; min-width: 150px; background: white; border-radius: 10px; padding: 16px 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.07); }
-    .summary-card .label { font-size: 0.75rem; color: #888; text-transform: uppercase; letter-spacing: 0.05em; }
-    .summary-card .value { font-size: 1.5rem; font-weight: 700; margin-top: 4px; }
-    .loading { text-align: center; padding: 40px; color: #888; }
-    .tabs { display: flex; gap: 8px; margin-bottom: 16px; }
-    .tab { padding: 8px 18px; border-radius: 6px; cursor: pointer; font-weight: 600; background: #f0f0f0; color: #555; border: none; }
-    .tab.active { background: #1a73e8; color: white; }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>GridOS — Battery Optimization</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root {
+  --bg-base: #070E1A;
+  --bg-surface: #0D1B2E;
+  --bg-card: #112240;
+  --bg-card-hover: #162B50;
+  --bg-sidebar: #080F1C;
+  --border: #1E3A5F;
+  --border-subtle: #152035;
+  --teal: #00D4AA;
+  --teal-dim: #00A884;
+  --teal-glow: rgba(0,212,170,0.12);
+  --amber: #F59E0B;
+  --amber-dim: rgba(245,158,11,0.15);
+  --red: #F43F5E;
+  --red-dim: rgba(244,63,94,0.15);
+  --blue: #3B82F6;
+  --blue-dim: rgba(59,130,246,0.12);
+  --text-primary: #E8F4FF;
+  --text-secondary: #7A9CC0;
+  --text-muted: #5A7FA3;
+  --sidebar-w: 220px;
+  --header-h: 60px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--bg-base);
+  color: var(--text-primary);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── SIDEBAR ── */
+.sidebar {
+  width: var(--sidebar-w);
+  background: var(--bg-sidebar);
+  border-right: 1px solid var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0; left: 0; bottom: 0;
+  z-index: 100;
+}
+.sidebar-logo { padding: 20px 20px 16px; border-bottom: 1px solid var(--border-subtle); }
+.logo-mark { display: flex; align-items: center; gap: 10px; }
+.logo-icon {
+  width: 32px; height: 32px; background: var(--teal); border-radius: 8px;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.logo-icon svg { width: 18px; height: 18px; }
+.logo-text { font-size: 17px; font-weight: 700; letter-spacing: -0.3px; }
+.logo-sub { font-size: 10px; font-weight: 500; color: var(--text-muted); letter-spacing: 0.8px; margin-top: 1px; }
+.sidebar-section { padding: 20px 12px 8px; }
+.sidebar-label { font-size: 10px; font-weight: 600; color: var(--text-muted); letter-spacing: 1px; padding: 0 8px; margin-bottom: 6px; text-transform: uppercase; }
+.nav-item {
+  display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 8px;
+  cursor: pointer; color: var(--text-secondary); font-size: 13.5px; font-weight: 500;
+  transition: background 0.15s, color 0.15s; margin-bottom: 2px;
+  background: none; border: none; width: 100%; text-align: left; font-family: inherit;
+}
+.nav-item:hover { background: var(--bg-card); color: var(--text-primary); }
+.nav-item.active { background: var(--teal-glow); color: var(--teal); }
+.nav-item svg { width: 16px; height: 16px; flex-shrink: 0; opacity: 0.8; }
+.nav-item.active svg { opacity: 1; }
+.nav-badge { margin-left: auto; background: var(--teal); color: var(--bg-base); font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 10px; }
+.sidebar-footer { margin-top: auto; padding: 16px 20px; border-top: 1px solid var(--border-subtle); font-size: 12px; color: var(--text-secondary); display: flex; align-items: center; gap: 8px; }
+.status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--text-muted); flex-shrink: 0; }
+.status-dot.ok { background: var(--teal); }
+.status-dot.err { background: var(--red); }
+
+/* ── MAIN LAYOUT ── */
+.main { margin-left: var(--sidebar-w); display: flex; flex-direction: column; min-height: 100vh; }
+
+/* ── HEADER ── */
+.header {
+  height: var(--header-h); background: var(--bg-surface); border-bottom: 1px solid var(--border-subtle);
+  display: flex; align-items: center; padding: 0 28px; gap: 16px; position: sticky; top: 0; z-index: 50;
+}
+.header-breadcrumb { font-size: 13px; color: var(--text-secondary); }
+.header-right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+.select-wrap { display: flex; align-items: center; gap: 8px; font-size: 11.5px; color: var(--text-muted); }
+.select {
+  background: var(--bg-card); color: var(--text-primary); border: 1px solid var(--border);
+  border-radius: 8px; padding: 7px 10px; font-family: inherit; font-size: 12.5px; cursor: pointer;
+}
+.select:focus { outline: 2px solid var(--teal); outline-offset: 1px; }
+
+/* ── CONTENT ── */
+.content { padding: 28px; flex: 1; }
+.page { display: none; animation: fadeIn 0.18s ease; }
+.page.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+.page-hdr { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 28px; flex-wrap: wrap; }
+.page-title { font-size: 22px; font-weight: 700; letter-spacing: -0.4px; }
+.page-sub { font-size: 13px; color: var(--text-secondary); margin-top: 3px; }
+
+.btn {
+  display: inline-flex; align-items: center; gap: 7px; padding: 9px 16px; border-radius: 8px;
+  font-size: 13px; font-weight: 600; cursor: pointer; border: none; transition: all 0.15s; font-family: inherit;
+}
+.btn-primary { background: var(--teal); color: var(--bg-base); }
+.btn-primary:hover { background: var(--teal-dim); }
+.btn-secondary { background: var(--bg-card); color: var(--text-secondary); border: 1px solid var(--border); }
+.btn-secondary:hover { background: var(--bg-card-hover); color: var(--text-primary); }
+
+/* ── BANNER ── */
+.banner { display: none; align-items: flex-start; gap: 12px; padding: 14px 16px; border-radius: 9px; border: 1px solid rgba(244,63,94,0.3); background: var(--red-dim); margin-bottom: 24px; font-size: 13px; color: var(--text-primary); }
+.banner.show { display: flex; }
+.banner .alert-dot { background: var(--red); }
+
+/* ── KPI CARDS ── */
+.kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+.kpi-card {
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 20px;
+  position: relative; overflow: hidden; transition: border-color 0.2s;
+}
+.kpi-card:hover { border-color: var(--teal); }
+.kpi-card::after { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; }
+.kpi-card.teal::after { background: var(--teal); }
+.kpi-card.amber::after { background: var(--amber); }
+.kpi-card.red::after { background: var(--red); }
+.kpi-card.blue::after { background: var(--blue); }
+.kpi-label { font-size: 11.5px; color: var(--text-muted); font-weight: 500; margin-bottom: 10px; }
+.kpi-value { font-family: 'JetBrains Mono', monospace; font-size: 26px; font-weight: 500; letter-spacing: -0.5px; }
+.kpi-value.teal { color: var(--teal); }
+.kpi-value.amber { color: var(--amber); }
+.kpi-value.red { color: var(--red); }
+.kpi-value.blue { color: var(--blue); }
+.kpi-delta { font-size: 11.5px; margin-top: 8px; color: var(--text-secondary); }
+
+/* ── GRID LAYOUTS ── */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+.grid-3-1 { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-bottom: 20px; }
+
+/* ── CHART CARD ── */
+.chart-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 22px; min-width: 0; }
+.chart-card + .chart-card { margin-top: 0; }
+.chart-hdr { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
+.chart-title { font-size: 14px; font-weight: 600; }
+.chart-sub { font-size: 11.5px; color: var(--text-muted); margin-top: 2px; }
+.chart-tabs { display: flex; gap: 4px; background: var(--bg-surface); padding: 3px; border-radius: 7px; border: 1px solid var(--border-subtle); }
+.chart-tab {
+  padding: 5px 12px; font-size: 11.5px; font-weight: 500; color: var(--text-muted); border-radius: 5px;
+  cursor: pointer; transition: all 0.15s; background: none; border: none; font-family: inherit;
+}
+.chart-tab.active { background: var(--bg-card); color: var(--text-primary); }
+.chart-wrap { position: relative; height: 240px; }
+.mb { margin-bottom: 20px; }
+
+/* ── BATTERY LIST ── */
+.battery-list { display: flex; flex-direction: column; gap: 10px; }
+.battery-row {
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px;
+  display: flex; align-items: center; gap: 16px; cursor: pointer; transition: border-color 0.15s, background 0.15s;
+  width: 100%; text-align: left; color: inherit; font-family: inherit;
+}
+.battery-row:hover { border-color: var(--teal); background: var(--bg-card-hover); }
+.battery-row.selected { border-color: var(--teal); background: var(--teal-glow); }
+.battery-icon { width: 38px; height: 38px; border-radius: 9px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; background: rgba(0,212,170,0.15); }
+.battery-icon svg { width: 20px; height: 20px; }
+.battery-info { flex: 1; min-width: 0; }
+.battery-name { font-size: 13.5px; font-weight: 600; }
+.battery-meta { font-size: 11.5px; color: var(--text-muted); margin-top: 2px; }
+.battery-stats { display: flex; gap: 24px; }
+.bstat { text-align: right; }
+.bstat-val { font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 500; }
+.bstat-lbl { font-size: 10.5px; color: var(--text-muted); margin-top: 1px; }
+
+/* ── SOC BAR ── */
+.soc-bar-wrap { display: flex; align-items: center; gap: 10px; margin-top: 8px; }
+.soc-bar-bg { flex: 1; height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
+.soc-bar-fill { height: 100%; border-radius: 2px; background: var(--teal); transition: width 0.4s; }
+.soc-pct { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-secondary); width: 40px; text-align: right; }
+
+/* ── INSIGHTS ── */
+.alert-list { display: flex; flex-direction: column; gap: 8px; }
+.alert-item { display: flex; align-items: flex-start; gap: 12px; padding: 14px 16px; border-radius: 9px; border: 1px solid; }
+.alert-item.warn { background: var(--amber-dim); border-color: rgba(245,158,11,0.2); }
+.alert-item.info { background: var(--blue-dim); border-color: rgba(59,130,246,0.2); }
+.alert-item.success { background: var(--teal-glow); border-color: rgba(0,212,170,0.2); }
+.alert-dot { width: 7px; height: 7px; border-radius: 50%; margin-top: 5px; flex-shrink: 0; }
+.alert-item.warn .alert-dot { background: var(--amber); }
+.alert-item.info .alert-dot { background: var(--blue); }
+.alert-item.success .alert-dot { background: var(--teal); }
+.alert-text { font-size: 12.5px; color: var(--text-secondary); line-height: 1.5; }
+.alert-text strong { color: var(--text-primary); font-weight: 600; }
+
+/* ── MINI STAT ── */
+.mini-stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 14px; }
+.mini-stat { padding: 12px 14px; background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: 9px; }
+.mini-stat-val { font-family: 'JetBrains Mono', monospace; font-size: 18px; font-weight: 500; }
+.mini-stat-lbl { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+
+/* ── DETAIL HEADER ── */
+.battery-detail-hdr {
+  display: flex; align-items: center; gap: 16px; background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: 14px; padding: 22px 24px; margin-bottom: 22px; flex-wrap: wrap;
+}
+.detail-icon {
+  width: 52px; height: 52px; background: var(--teal-glow); border: 1px solid rgba(0,212,170,0.2);
+  border-radius: 13px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.detail-name { font-size: 20px; font-weight: 700; letter-spacing: -0.3px; }
+.detail-sub { font-size: 12.5px; color: var(--text-muted); margin-top: 3px; }
+.detail-kpis { display: flex; gap: 32px; margin-left: auto; flex-wrap: wrap; }
+.dkpi-val { font-family: 'JetBrains Mono', monospace; font-size: 20px; font-weight: 500; }
+.dkpi-lbl { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+/* ── HEATMAP ── */
+.heatmap-grid { display: grid; grid-template-columns: repeat(24, 1fr); gap: 3px; margin-top: 12px; }
+.hm-cell {
+  height: 32px; border-radius: 4px; display: flex; align-items: center; justify-content: center;
+  font-size: 9px; font-weight: 600; color: var(--bg-base); cursor: default; transition: transform 0.1s;
+}
+.hm-cell.hold { color: var(--text-secondary); }
+.hm-cell:hover { transform: scaleY(1.1); }
+.hm-labels { display: grid; grid-template-columns: repeat(24, 1fr); gap: 3px; margin-top: 4px; }
+.hm-label { text-align: center; font-size: 8.5px; color: var(--text-muted); }
+.legend { display: flex; gap: 20px; margin-top: 14px; font-size: 11px; color: var(--text-muted); flex-wrap: wrap; }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; }
+
+/* ── TABLE ── */
+.table-scroll { overflow-x: auto; }
+.data-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.data-table th {
+  text-align: left; font-size: 10.5px; font-weight: 600; color: var(--text-muted); letter-spacing: 0.5px;
+  padding: 8px 12px; border-bottom: 1px solid var(--border); text-transform: uppercase; white-space: nowrap;
+}
+.data-table td {
+  padding: 10px 12px; border-bottom: 1px solid var(--border-subtle); color: var(--text-secondary);
+  font-family: 'JetBrains Mono', monospace; font-size: 12px; white-space: nowrap;
+}
+.data-table td.num, .data-table th.num { text-align: right; }
+.data-table tr:last-child td { border-bottom: none; }
+.data-table tr:hover td { background: rgba(255,255,255,0.02); }
+.action-charge { color: var(--blue); font-weight: 500; }
+.action-discharge { color: var(--teal); font-weight: 500; }
+.action-hold { color: var(--text-muted); }
+.rev-pos { color: var(--teal); }
+.rev-neg { color: var(--red); }
+.empty { padding: 32px; text-align: center; color: var(--text-muted); font-size: 13px; }
+
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 1100px) {
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+  .grid-2, .grid-3-1 { grid-template-columns: 1fr; }
+  .detail-kpis { margin-left: 0; }
+}
+@media (max-width: 800px) {
+  .sidebar { position: static; width: auto; height: auto; flex-direction: row; align-items: center; overflow-x: auto; border-right: none; border-bottom: 1px solid var(--border-subtle); }
+  .sidebar-logo { border-bottom: none; padding: 12px 16px; }
+  .logo-sub, .sidebar-label, .sidebar-footer { display: none; }
+  .sidebar-section { padding: 0 4px; display: flex; gap: 4px; }
+  .nav-item { white-space: nowrap; margin: 0; }
+  .main { margin-left: 0; }
+  .header { padding: 0 16px; position: static; height: auto; min-height: var(--header-h); flex-wrap: wrap; padding-block: 10px; }
+  .content { padding: 20px 16px; }
+  .kpi-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .kpi-value { font-size: 20px; }
+  .battery-row { flex-wrap: wrap; }
+  .hm-cell { height: 24px; font-size: 0; }
+  .hm-labels .hm-label:nth-child(even) { visibility: hidden; }
+}
+</style>
 </head>
 <body>
-  <header>Battery Optimization Dashboard</header>
-  <div id="root"></div>
 
-  <script type="text/babel">
-    const API = window.location.protocol === "file:" ? "http://127.0.0.1:8000" : "";
-    const { useState, useEffect } = React;
-    const { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } = Recharts;
+<!-- ═══ SIDEBAR ═══ -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-mark">
+      <div class="logo-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#070E1A" stroke-width="2.5" stroke-linecap="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+      </div>
+      <div>
+        <div class="logo-text">GridOS</div>
+        <div class="logo-sub">BATTERY OPTIMIZATION</div>
+      </div>
+    </div>
+  </div>
 
-    function App() {
-      const [batteries, setBatteries]     = useState([]);
-      const [selectedBattery, setSelectedBattery] = useState(null);
-      const [viewMode, setViewMode]       = useState("latest");
-      const [data, setData]               = useState([]);
-      const [loading, setLoading]         = useState(false);
-      const [chartTab, setChartTab]       = useState("soc");
+  <nav class="sidebar-section">
+    <div class="sidebar-label">Overview</div>
+    <button class="nav-item active" data-page="dashboard">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      Dashboard
+    </button>
+    <button class="nav-item" data-page="fleet">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="7" width="18" height="11" rx="2"/><path d="M22 11v3"/><line x1="6" y1="11" x2="6" y2="14"/><line x1="10" y1="11" x2="10" y2="14"/></svg>
+      Fleet
+      <span class="nav-badge" id="fleetBadge">0</span>
+    </button>
+  </nav>
 
-      useEffect(() => {
-        fetch(`${API}/batteries`)
-          .then(r => r.json())
-          .then(b => { setBatteries(b); if (b.length) setSelectedBattery(b[0].battery_id); });
-      }, []);
+  <nav class="sidebar-section">
+    <div class="sidebar-label">Operations</div>
+    <button class="nav-item" data-page="optimization">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      Optimization
+    </button>
+    <button class="nav-item" data-page="schedule">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      Schedule
+    </button>
+  </nav>
 
-      useEffect(() => {
-        if (!selectedBattery) return;
-        setLoading(true);
-        const url = viewMode === "latest"
-          ? `${API}/optimization/battery/${selectedBattery}/latest`
-          : `${API}/optimization/battery/${selectedBattery}/all`;
-        fetch(url)
-          .then(r => r.json())
-          .then(d => { setData(d); setLoading(false); })
-          .catch(() => setLoading(false));
-      }, [selectedBattery, viewMode]);
+  <nav class="sidebar-section">
+    <div class="sidebar-label">Analytics</div>
+    <button class="nav-item" data-page="history">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+      Run History
+    </button>
+  </nav>
 
-      const latestVersion = data.length ? Math.max(...data.map(r => r.version)) : null;
-      const displayData   = viewMode === "latest" ? data : data.filter(r => r.version === latestVersion);
-      const totalRevenue  = displayData.reduce((s, r) => s + r.revenue, 0);
-      const totalCharge   = displayData.reduce((s, r) => s + r.charge_kw, 0);
-      const totalDischarge= displayData.reduce((s, r) => s + r.discharge_kw, 0);
-      const selectedBatt  = batteries.find(b => b.battery_id === selectedBattery);
+  <div class="sidebar-footer">
+    <span class="status-dot" id="apiDot"></span>
+    <span id="apiStatus">Connecting…</span>
+  </div>
+</aside>
 
-      const chartData = displayData
-        .filter(r => r.version === latestVersion)
-        .sort((a, b) => a.hour - b.hour);
+<!-- ═══ MAIN ═══ -->
+<div class="main">
+  <header class="header">
+    <div class="header-breadcrumb" id="breadcrumb">Dashboard</div>
+    <div class="header-right">
+      <label class="select-wrap">Battery
+        <select class="select" id="batterySelect"></select>
+      </label>
+    </div>
+  </header>
 
-      return (
-        <div className="container">
+  <div class="content">
+    <div class="banner" id="errorBanner" role="alert"><span class="alert-dot"></span><span id="errorText"></span></div>
 
-          <div className="card">
-            <h2>Select Battery</h2>
-            <div className="battery-list">
-              {batteries.map(b => (
-                <div
-                  key={b.battery_id}
-                  className={`battery-chip ${selectedBattery === b.battery_id ? "active" : ""}`}
-                  onClick={() => setSelectedBattery(b.battery_id)}
-                >
-                  {b.name} — {b.location}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {selectedBatt && (
-            <div className="summary-row">
-              <div className="summary-card"><div className="label">Battery</div><div className="value" style={{fontSize:"1.1rem"}}>{selectedBatt.name}</div></div>
-              <div className="summary-card"><div className="label">Owner</div><div className="value" style={{fontSize:"1.1rem"}}>{selectedBatt.owner}</div></div>
-              <div className="summary-card"><div className="label">ISO</div><div className="value">{selectedBatt.iso}</div></div>
-              <div className="summary-card"><div className="label">Total Revenue</div><div className="value" style={{color: totalRevenue >= 0 ? "#2e7d32" : "#c62828"}}>${totalRevenue.toFixed(2)}</div></div>
-              <div className="summary-card"><div className="label">Total Charged</div><div className="value" style={{color:"#1a73e8"}}>{totalCharge.toFixed(0)} kW</div></div>
-              <div className="summary-card"><div className="label">Total Discharged</div><div className="value" style={{color:"#e53935"}}>{totalDischarge.toFixed(0)} kW</div></div>
-            </div>
-          )}
-
-          <div className="card">
-            <h2>Optimization Runs</h2>
-            <div className="controls">
-              <select value={viewMode} onChange={e => setViewMode(e.target.value)}>
-                <option value="latest">Latest Run Only</option>
-                <option value="all">All Historical Runs</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="card">
-            <div className="tabs">
-              <button className={`tab ${chartTab === "soc" ? "active" : ""}`} onClick={() => setChartTab("soc")}>State of Charge</button>
-              <button className={`tab ${chartTab === "revenue" ? "active" : ""}`} onClick={() => setChartTab("revenue")}>Revenue</button>
-              <button className={`tab ${chartTab === "power" ? "active" : ""}`} onClick={() => setChartTab("power")}>Charge / Discharge</button>
-            </div>
-
-            {chartTab === "soc" && (
-              <ResponsiveContainer width="100%" height={280}>
-                <LineChart data={chartData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="hour" label={{ value: "Hour", position: "insideBottom", offset: -2 }} />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Line type="monotone" dataKey="soc_kw" stroke="#1a73e8" name="SoC (kWh)" dot={false} strokeWidth={2} />
-                </LineChart>
-              </ResponsiveContainer>
-            )}
-
-            {chartTab === "revenue" && (
-              <ResponsiveContainer width="100%" height={280}>
-                <BarChart data={chartData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="hour" label={{ value: "Hour", position: "insideBottom", offset: -2 }} />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Bar dataKey="revenue" name="Revenue ($)" fill="#2e7d32" />
-                </BarChart>
-              </ResponsiveContainer>
-            )}
-
-            {chartTab === "power" && (
-              <ResponsiveContainer width="100%" height={280}>
-                <BarChart data={chartData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="hour" label={{ value: "Hour", position: "insideBottom", offset: -2 }} />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Bar dataKey="charge_kw"    name="Charge (kW)"    fill="#1a73e8" />
-                  <Bar dataKey="discharge_kw" name="Discharge (kW)" fill="#e53935" />
-                </BarChart>
-              </ResponsiveContainer>
-            )}
-          </div>
-
-          <div className="card">
-            <h2>Schedule Detail</h2>
-            {loading ? <div className="loading">Loading...</div> : (
-              <table>
-                <thead>
-                  <tr>
-                    <th>Version</th>
-                    <th>Date</th>
-                    <th>Hour</th>
-                    <th>Action</th>
-                    <th>Charge kW</th>
-                    <th>Discharge kW</th>
-                    <th>SoC kWh</th>
-                    <th>Price $/MWh</th>
-                    <th>Revenue $</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {data.map((r, i) => (
-                    <tr key={i}>
-                      <td>{r.version}</td>
-                      <td>{r.date}</td>
-                      <td>{r.hour}</td>
-                      <td className={`action-${r.action}`}>{r.action}</td>
-                      <td>{r.charge_kw.toFixed(1)}</td>
-                      <td>{r.discharge_kw.toFixed(1)}</td>
-                      <td>{r.soc_kw.toFixed(1)}</td>
-                      <td>{(r.price_mwh * 1000).toFixed(2)}</td>
-                      <td className={r.revenue >= 0 ? "revenue-pos" : "revenue-neg"}>{r.revenue.toFixed(2)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-          </div>
-
+    <!-- ── DASHBOARD ── -->
+    <section class="page active" id="page-dashboard">
+      <div class="page-hdr">
+        <div>
+          <div class="page-title">Portfolio Overview</div>
+          <div class="page-sub" id="dashSub">Loading…</div>
         </div>
-      );
-    }
+        <button class="btn btn-secondary" data-goto="optimization">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          View Optimization
+        </button>
+      </div>
 
-    ReactDOM.createRoot(document.getElementById("root")).render(<App />);
-  </script>
-</body>
-</html>
--->
+      <div class="kpi-grid">
+        <div class="kpi-card teal"><div class="kpi-label">Net Revenue — Latest Run</div><div class="kpi-value teal" id="kRevenue">—</div><div class="kpi-delta" id="kRevenueSub">&nbsp;</div></div>
+        <div class="kpi-card blue"><div class="kpi-label">Energy Charged</div><div class="kpi-value blue" id="kCharged">—</div><div class="kpi-delta" id="kChargedSub">&nbsp;</div></div>
+        <div class="kpi-card amber"><div class="kpi-label">Energy Discharged</div><div class="kpi-value amber" id="kDischarged">—</div><div class="kpi-delta" id="kDischargedSub">&nbsp;</div></div>
+        <div class="kpi-card red"><div class="kpi-label">Optimization Runs</div><div class="kpi-value" id="kRuns">—</div><div class="kpi-delta" id="kRunsSub">&nbsp;</div></div>
+      </div>
 
-
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Battery Optimization Dashboard</title>
-  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
-  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: sans-serif; background: #f0f2f5; color: #1a1a2e; }
-    header { background: #1a1a2e; color: white; padding: 18px 32px; font-size: 1.3rem; font-weight: 700; }
-    .container { max-width: 1200px; margin: 0 auto; padding: 24px; }
-    .card { background: white; border-radius: 10px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.07); }
-    .card h2 { font-size: 0.85rem; font-weight: 600; margin-bottom: 14px; color: #444; text-transform: uppercase; letter-spacing: 0.05em; }
-    .battery-list { display: flex; gap: 12px; flex-wrap: wrap; }
-    .battery-chip { background: #e8f0fe; border: 2px solid transparent; border-radius: 8px; padding: 10px 18px; cursor: pointer; font-weight: 600; transition: all 0.15s; }
-    .battery-chip.active { border-color: #1a73e8; background: #1a73e8; color: white; }
-    .summary-row { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 20px; }
-    .summary-card { flex: 1; min-width: 140px; background: white; border-radius: 10px; padding: 16px 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.07); }
-    .summary-card .label { font-size: 0.75rem; color: #888; text-transform: uppercase; letter-spacing: 0.05em; }
-    .summary-card .value { font-size: 1.4rem; font-weight: 700; margin-top: 4px; }
-    .controls { display: flex; gap: 12px; align-items: center; }
-    select { padding: 8px 14px; border-radius: 6px; border: 1px solid #ccc; font-size: 0.9rem; cursor: pointer; }
-    .tabs { display: flex; gap: 8px; margin-bottom: 16px; }
-    .tab { padding: 8px 18px; border-radius: 6px; cursor: pointer; font-weight: 600; background: #f0f0f0; color: #555; border: none; font-size: 0.875rem; }
-    .tab.active { background: #1a73e8; color: white; }
-    table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
-    th { background: #f8f9fa; text-align: left; padding: 10px 12px; border-bottom: 2px solid #e0e0e0; font-weight: 600; color: #555; }
-    td { padding: 9px 12px; border-bottom: 1px solid #f0f0f0; }
-    tr:hover td { background: #fafafa; }
-    .charge { color: #1a73e8; font-weight: 600; }
-    .discharge { color: #e53935; font-weight: 600; }
-    .hold { color: #888; }
-    .pos { color: #2e7d32; font-weight: 600; }
-    .neg { color: #c62828; font-weight: 600; }
-    .loading { text-align: center; padding: 40px; color: #888; }
-    .error { text-align: center; padding: 20px; color: #c62828; }
-  </style>
-</head>
-<body>
-  <header>Battery Optimization Dashboard</header>
-  <div id="root"></div>
-
-  <script type="text/babel">
-    const API = window.location.protocol === "file:" ? "http://127.0.0.1:8000" : "";
-    const { useState, useEffect, useRef } = React;
-
-    function ChartWrapper({ data, chartTab }) {
-      const canvasRef = useRef(null);
-      const chartRef  = useRef(null);
-
-      useEffect(() => {
-        if (!canvasRef.current || !data.length) return;
-        if (chartRef.current) chartRef.current.destroy();
-
-        const hours = data.map(r => `Hr ${r.hour}`);
-        const ctx   = canvasRef.current.getContext("2d");
-
-        const configs = {
-          soc: {
-            type: "line",
-            datasets: [{ label: "SoC (kWh)", data: data.map(r => r.soc_kw), borderColor: "#1a73e8", backgroundColor: "rgba(26,115,232,0.1)", fill: true, tension: 0.3, pointRadius: 2 }]
-          },
-          revenue: {
-            type: "bar",
-            datasets: [{ label: "Revenue ($)", data: data.map(r => r.revenue), backgroundColor: data.map(r => r.revenue >= 0 ? "#2e7d32" : "#c62828") }]
-          },
-          power: {
-            type: "bar",
-            datasets: [
-              { label: "Charge (kW)",    data: data.map(r => r.charge_kw),    backgroundColor: "#1a73e8" },
-              { label: "Discharge (kW)", data: data.map(r => r.discharge_kw), backgroundColor: "#e53935" }
-            ]
-          }
-        };
-
-        chartRef.current = new Chart(ctx, {
-          type: configs[chartTab].type,
-          data: { labels: hours, datasets: configs[chartTab].datasets },
-          options: { responsive: true, plugins: { legend: { position: "top" } }, scales: { x: { ticks: { font: { size: 11 } } } } }
-        });
-
-        return () => { if (chartRef.current) chartRef.current.destroy(); };
-      }, [data, chartTab]);
-
-      return <canvas ref={canvasRef} height={100} />;
-    }
-
-    function App() {
-      const [batteries,       setBatteries]       = useState([]);
-      const [selectedBattery, setSelectedBattery] = useState(null);
-      const [viewMode,        setViewMode]         = useState("latest");
-      const [data,            setData]             = useState([]);
-      const [loading,         setLoading]          = useState(false);
-      const [error,           setError]            = useState(null);
-      const [chartTab,        setChartTab]         = useState("soc");
-
-      useEffect(() => {
-        fetch(`${API}/batteries`)
-          .then(r => r.json())
-          .then(b => { setBatteries(b); if (b.length) setSelectedBattery(b[0].battery_id); })
-          .catch(() => setError("Could not connect to API. Make sure uvicorn is running on port 8000."));
-      }, []);
-
-      useEffect(() => {
-        if (!selectedBattery) return;
-        setLoading(true);
-        setError(null);
-        const url = viewMode === "latest"
-          ? `${API}/optimization/battery/${selectedBattery}/latest`
-          : `${API}/optimization/battery/${selectedBattery}/all`;
-        fetch(url)
-          .then(r => r.json())
-          .then(d => { setData(d); setLoading(false); })
-          .catch(() => { setError("Failed to load optimization data."); setLoading(false); });
-      }, [selectedBattery, viewMode]);
-
-      const latestVersion = data.length ? Math.max(...data.map(r => r.version)) : null;
-      const chartData     = data.filter(r => r.version === latestVersion).sort((a, b) => a.hour - b.hour);
-      const totalRevenue  = chartData.reduce((s, r) => s + r.revenue, 0);
-      const totalCharge   = chartData.reduce((s, r) => s + r.charge_kw, 0);
-      const totalDischarge= chartData.reduce((s, r) => s + r.discharge_kw, 0);
-      const selectedBatt  = batteries.find(b => b.battery_id === selectedBattery);
-
-      return (
-        <div className="container">
-
-          {error && <div className="card error">{error}</div>}
-
-          <div className="card">
-            <h2>Select Battery</h2>
-            <div className="battery-list">
-              {batteries.map(b => (
-                <div key={b.battery_id}
-                  className={`battery-chip ${selectedBattery === b.battery_id ? "active" : ""}`}
-                  onClick={() => setSelectedBattery(b.battery_id)}>
-                  {b.name} — {b.location}
-                </div>
-              ))}
+      <div class="grid-3-1">
+        <div class="chart-card">
+          <div class="chart-hdr">
+            <div><div class="chart-title">Latest Run — 24h Profile</div><div class="chart-sub" id="dashChartSub">&nbsp;</div></div>
+            <div class="chart-tabs" role="tablist">
+              <button class="chart-tab active" data-dash="soc">State of Charge</button>
+              <button class="chart-tab" data-dash="revenue">Revenue</button>
+              <button class="chart-tab" data-dash="power">Charge / Discharge</button>
             </div>
           </div>
-
-          {selectedBatt && (
-            <div className="summary-row">
-              <div className="summary-card"><div className="label">Battery</div><div className="value" style={{fontSize:"1rem"}}>{selectedBatt.name}</div></div>
-              <div className="summary-card"><div className="label">Owner</div><div className="value" style={{fontSize:"1rem"}}>{selectedBatt.owner}</div></div>
-              <div className="summary-card"><div className="label">ISO</div><div className="value">{selectedBatt.iso}</div></div>
-              <div className="summary-card"><div className="label">Total Revenue</div><div className="value" style={{color: totalRevenue >= 0 ? "#2e7d32" : "#c62828"}}>${totalRevenue.toFixed(2)}</div></div>
-              <div className="summary-card"><div className="label">Total Charged</div><div className="value" style={{color:"#1a73e8"}}>{totalCharge.toFixed(0)} kW</div></div>
-              <div className="summary-card"><div className="label">Total Discharged</div><div className="value" style={{color:"#e53935"}}>{totalDischarge.toFixed(0)} kW</div></div>
-            </div>
-          )}
-
-          <div className="card">
-            <h2>View Mode</h2>
-            <div className="controls">
-              <select value={viewMode} onChange={e => setViewMode(e.target.value)}>
-                <option value="latest">Latest Run Only</option>
-                <option value="all">All Historical Runs</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="card">
-            <div className="tabs">
-              <button className={`tab ${chartTab === "soc"     ? "active" : ""}`} onClick={() => setChartTab("soc")}>State of Charge</button>
-              <button className={`tab ${chartTab === "revenue" ? "active" : ""}`} onClick={() => setChartTab("revenue")}>Revenue</button>
-              <button className={`tab ${chartTab === "power"   ? "active" : ""}`} onClick={() => setChartTab("power")}>Charge / Discharge</button>
-            </div>
-            {chartData.length > 0 && <ChartWrapper data={chartData} chartTab={chartTab} />}
-          </div>
-
-          <div className="card">
-            <h2>Schedule Detail</h2>
-            {loading ? (
-              <div className="loading">Loading...</div>
-            ) : (
-              <table>
-                <thead>
-                  <tr>
-                    <th>Version</th><th>Date</th><th>Hour</th><th>Action</th>
-                    <th>Charge kW</th><th>Discharge kW</th><th>SoC kWh</th>
-                    <th>Price $/MWh</th><th>Revenue $</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {data.map((r, i) => (
-                    <tr key={i}>
-                      <td>{r.version}</td>
-                      <td>{r.date}</td>
-                      <td>{r.hour}</td>
-                      <td className={r.action}>{r.action}</td>
-                      <td>{r.charge_kw.toFixed(1)}</td>
-                      <td>{r.discharge_kw.toFixed(1)}</td>
-                      <td>{r.soc_kw.toFixed(1)}</td>
-                      <td>{(r.price_mwh * 1000).toFixed(2)}</td>
-                      <td className={r.revenue >= 0 ? "pos" : "neg"}>{r.revenue.toFixed(2)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-          </div>
-
+          <div class="chart-wrap"><canvas id="dashChart"></canvas></div>
         </div>
-      );
-    }
 
-    ReactDOM.createRoot(document.getElementById("root")).render(<App />);
-  </script>
+        <div class="chart-card">
+          <div class="chart-hdr"><div><div class="chart-title">Dispatch Mix</div><div class="chart-sub">Hours by action — latest run</div></div></div>
+          <div class="chart-wrap" style="height:170px;"><canvas id="mixChart"></canvas></div>
+          <div class="mini-stats">
+            <div class="mini-stat"><div class="mini-stat-val" style="color:var(--blue)" id="mCharge">—</div><div class="mini-stat-lbl">Charge</div></div>
+            <div class="mini-stat"><div class="mini-stat-val" style="color:var(--teal)" id="mDischarge">—</div><div class="mini-stat-lbl">Discharge</div></div>
+            <div class="mini-stat"><div class="mini-stat-val" style="color:var(--text-secondary)" id="mHold">—</div><div class="mini-stat-lbl">Hold</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid-3-1">
+        <div class="chart-card">
+          <div class="chart-hdr">
+            <div><div class="chart-title">Battery Fleet</div><div class="chart-sub">Click a battery to view its optimization</div></div>
+            <button class="btn btn-secondary" style="font-size:11.5px;padding:6px 12px;" data-goto="fleet">View all</button>
+          </div>
+          <div class="battery-list" id="dashFleet"></div>
+        </div>
+
+        <div class="chart-card">
+          <div class="chart-hdr"><div><div class="chart-title">Insights</div><div class="chart-sub">From the latest run</div></div></div>
+          <div class="alert-list" id="insights"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── FLEET ── -->
+    <section class="page" id="page-fleet">
+      <div class="page-hdr">
+        <div><div class="page-title">Battery Fleet</div><div class="page-sub" id="fleetSub">&nbsp;</div></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-hdr"><div><div class="chart-title">Fleet Assets</div><div class="chart-sub">Select a battery to view full optimization detail</div></div></div>
+        <div class="battery-list" id="fleetList"></div>
+      </div>
+    </section>
+
+    <!-- ── OPTIMIZATION ── -->
+    <section class="page" id="page-optimization">
+      <div class="page-hdr">
+        <div><div class="page-title">Optimization Engine</div><div class="page-sub" id="optSub">&nbsp;</div></div>
+        <button class="btn btn-secondary" id="exportBtn">↓ Export CSV</button>
+      </div>
+
+      <div class="battery-detail-hdr">
+        <div class="detail-icon">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#00D4AA" stroke-width="1.8" stroke-linecap="round"><rect x="2" y="7" width="18" height="11" rx="2"/><path d="M22 11v3"/><line x1="6" y1="11" x2="6" y2="14"/><line x1="10" y1="11" x2="10" y2="14"/></svg>
+        </div>
+        <div>
+          <div class="detail-name" id="dName">—</div>
+          <div class="detail-sub" id="dSub">&nbsp;</div>
+        </div>
+        <div class="detail-kpis">
+          <div><div class="dkpi-val" style="color:var(--teal)" id="dRevenue">—</div><div class="dkpi-lbl">Net Revenue</div></div>
+          <div><div class="dkpi-val" style="color:var(--blue)" id="dCharged">—</div><div class="dkpi-lbl">Total Charged</div></div>
+          <div><div class="dkpi-val" style="color:var(--amber)" id="dDischarged">—</div><div class="dkpi-lbl">Total Discharged</div></div>
+          <div><div class="dkpi-val" id="dEndSoc">—</div><div class="dkpi-lbl">End SoC</div></div>
+        </div>
+      </div>
+
+      <div class="chart-card mb">
+        <div class="chart-hdr"><div><div class="chart-title">Hourly Price Signal &amp; Dispatch Action</div><div class="chart-sub">Cell brightness follows the hour's price</div></div></div>
+        <div class="heatmap-grid" id="heatmap"></div>
+        <div class="hm-labels" id="hmLabels"></div>
+        <div class="legend">
+          <span><i style="background:#3B82F6"></i>Charge</span>
+          <span><i style="background:#00D4AA"></i>Discharge</span>
+          <span><i style="background:#2A4060"></i>Hold</span>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="chart-card">
+          <div class="chart-hdr"><div><div class="chart-title">State of Charge</div><div class="chart-sub">Trajectory across the 24h horizon (MWh)</div></div></div>
+          <div class="chart-wrap"><canvas id="socChart"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-hdr"><div><div class="chart-title">Hourly Revenue</div><div class="chart-sub">Charge cost (−) and discharge revenue (+)</div></div></div>
+          <div class="chart-wrap"><canvas id="hourlyRevChart"></canvas></div>
+        </div>
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-hdr"><div><div class="chart-title">Price Curve</div><div class="chart-sub">Settlement price by hour ($/MWh)</div></div></div>
+        <div class="chart-wrap" style="height:200px;"><canvas id="priceChart"></canvas></div>
+      </div>
+    </section>
+
+    <!-- ── SCHEDULE ── -->
+    <section class="page" id="page-schedule">
+      <div class="page-hdr">
+        <div><div class="page-title">Dispatch Schedule</div><div class="page-sub" id="schedSub">&nbsp;</div></div>
+        <label class="select-wrap">View
+          <select class="select" id="viewMode">
+            <option value="latest">Latest run only</option>
+            <option value="all">All historical runs</option>
+          </select>
+        </label>
+      </div>
+      <div class="chart-card">
+        <div class="chart-hdr"><div><div class="chart-title">Hourly Charge / Discharge Plan</div><div class="chart-sub" id="schedCount">&nbsp;</div></div></div>
+        <div class="table-scroll">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Run</th><th>Version</th><th>Date</th><th>Hour</th><th>Action</th>
+                <th class="num">Charge kW</th><th class="num">Discharge kW</th><th class="num">SoC kWh</th>
+                <th class="num">Price $/MWh</th><th class="num">Revenue $</th>
+              </tr>
+            </thead>
+            <tbody id="scheduleBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── RUN HISTORY ── -->
+    <section class="page" id="page-history">
+      <div class="page-hdr">
+        <div><div class="page-title">Run History</div><div class="page-sub" id="histSub">&nbsp;</div></div>
+      </div>
+      <div class="kpi-grid">
+        <div class="kpi-card teal"><div class="kpi-label">Best Run</div><div class="kpi-value teal" id="hBest">—</div><div class="kpi-delta" id="hBestSub">&nbsp;</div></div>
+        <div class="kpi-card amber"><div class="kpi-label">Average Run</div><div class="kpi-value amber" id="hAvg">—</div><div class="kpi-delta">Net revenue per 24h run</div></div>
+        <div class="kpi-card red"><div class="kpi-label">Worst Run</div><div class="kpi-value red" id="hWorst">—</div><div class="kpi-delta" id="hWorstSub">&nbsp;</div></div>
+        <div class="kpi-card blue"><div class="kpi-label">Total Runs</div><div class="kpi-value blue" id="hCount">—</div><div class="kpi-delta" id="hCountSub">&nbsp;</div></div>
+      </div>
+      <div class="chart-card mb">
+        <div class="chart-hdr"><div><div class="chart-title">Net Revenue by Run</div><div class="chart-sub">Each bar is one optimization run</div></div></div>
+        <div class="chart-wrap" style="height:260px;"><canvas id="historyChart"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-hdr"><div><div class="chart-title">Runs</div><div class="chart-sub">Newest first</div></div></div>
+        <div class="table-scroll">
+          <table class="data-table">
+            <thead><tr><th>Run</th><th>Version</th><th>Date</th><th>Type</th><th class="num">Charged MWh</th><th class="num">Discharged MWh</th><th class="num">Net Revenue $</th></tr></thead>
+            <tbody id="historyBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<script>
+// Opened as a local file → talk to uvicorn on this machine; hosted → same origin
+const API = window.location.protocol === "file:" ? "http://127.0.0.1:8000" : "";
+
+const TEAL = '#00D4AA', AMBER = '#F59E0B', RED = '#F43F5E', BLUE = '#3B82F6', HOLD = '#2A4060';
+const TEAL_T = 'rgba(0,212,170,0.15)';
+const BATTERY_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="#00D4AA" stroke-width="1.8" stroke-linecap="round"><rect x="2" y="7" width="18" height="11" rx="2"/><path d="M22 11v3"/><line x1="6" y1="11" x2="6" y2="14"/><line x1="10" y1="11" x2="10" y2="14"/></svg>';
+
+const state = {
+  batteries: [],
+  batteryId: null,
+  rows: [],          // every output row for the selected battery
+  runs: [],          // rows grouped by output_id
+  latest: [],        // rows of the latest run, sorted by hour
+  page: 'dashboard',
+  dashTab: 'soc',
+  charts: {},
+};
+
+// ── HELPERS ──
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const money = (v, d = 2) => (v < 0 ? '−$' : '$') + Math.abs(v).toLocaleString(undefined, { minimumFractionDigits: d, maximumFractionDigits: d });
+const signedMoney = v => v === 0 ? '—' : (v > 0 ? '+' : '') + money(v);
+const mwh = kwh => (kwh / 1000).toLocaleString(undefined, { maximumFractionDigits: 1 }) + ' MWh';
+const num = (v, d = 1) => v.toLocaleString(undefined, { minimumFractionDigits: d, maximumFractionDigits: d });
+const sum = (rows, k) => rows.reduce((s, r) => s + r[k], 0);
+const cap = s => s ? s.charAt(0).toUpperCase() + s.slice(1) : '';
+const runLabel = run => `v${run.version} · #${run.output_id}`;
+
+async function getJSON(path) {
+  const res = await fetch(API + path);
+  if (!res.ok) throw new Error(`${path} returned ${res.status}`);
+  return res.json();
+}
+
+function showError(msg) {
+  $('errorText').textContent = msg;
+  $('errorBanner').classList.add('show');
+  $('apiDot').className = 'status-dot err';
+  $('apiStatus').textContent = 'API unreachable';
+}
+
+// ── CHARTS ──
+Chart.defaults.color = '#7A9CC0';
+Chart.defaults.font.family = 'Inter';
+Chart.defaults.font.size = 11;
+
+function baseOptions(yLabel, legend = false) {
+  return {
+    responsive: true, maintainAspectRatio: false, animation: { duration: 300 },
+    plugins: {
+      legend: { display: legend, labels: { color: '#7A9CC0', boxWidth: 10, font: { size: 11 } } },
+      tooltip: { backgroundColor: '#112240', borderColor: '#1E3A5F', borderWidth: 1, padding: 10, titleColor: '#E8F4FF', bodyColor: '#7A9CC0' },
+    },
+    scales: {
+      x: { grid: { color: 'rgba(30,58,95,0.5)' }, ticks: { color: '#5A7FA3' } },
+      y: { grid: { color: 'rgba(30,58,95,0.5)' }, ticks: { color: '#5A7FA3' }, title: { display: !!yLabel, text: yLabel, color: '#5A7FA3', font: { size: 10 } } },
+    },
+  };
+}
+
+function draw(id, config) {
+  if (state.charts[id]) state.charts[id].destroy();
+  state.charts[id] = new Chart($(id), config);
+}
+
+const hourLabels = rows => rows.map(r => `${r.hour}h`);
+const revColors = rows => rows.map(r => r.revenue > 0 ? 'rgba(0,212,170,0.7)' : r.revenue < 0 ? 'rgba(59,130,246,0.6)' : 'rgba(42,64,96,0.5)');
+
+// ── DATA ──
+function groupRuns(rows) {
+  const byId = new Map();
+  rows.forEach(r => {
+    if (!byId.has(r.output_id)) byId.set(r.output_id, { output_id: r.output_id, version: r.version, date: r.date, type: r.optimization_type, rows: [] });
+    byId.get(r.output_id).rows.push(r);
+  });
+  const runs = [...byId.values()];
+  runs.forEach(run => {
+    run.rows.sort((a, b) => a.hour - b.hour);
+    run.revenue = sum(run.rows, 'revenue');
+    run.charged = sum(run.rows, 'charge_kw');
+    run.discharged = sum(run.rows, 'discharge_kw');
+  });
+  return runs.sort((a, b) => a.output_id - b.output_id);
+}
+
+// Same rule as the API's /latest endpoint: highest version wins; newest run within it
+function latestRun(runs) {
+  if (!runs.length) return null;
+  const maxV = Math.max(...runs.map(r => r.version));
+  return runs.filter(r => r.version === maxV).at(-1);
+}
+
+async function loadBatteries() {
+  try {
+    state.batteries = await getJSON('/batteries');
+  } catch (e) {
+    showError('Could not reach the API. ' + (API ? 'Make sure uvicorn is running on port 8000.' : 'Check the Vercel function logs.'));
+    return;
+  }
+  $('apiDot').className = 'status-dot ok';
+  $('apiStatus').textContent = 'API connected';
+  $('fleetBadge').textContent = state.batteries.length;
+  $('batterySelect').innerHTML = state.batteries.map(b => `<option value="${b.battery_id}">${esc(b.name)}</option>`).join('');
+  if (state.batteries.length) selectBattery(state.batteries[0].battery_id);
+  else renderAll();
+}
+
+async function selectBattery(id) {
+  state.batteryId = Number(id);
+  $('batterySelect').value = state.batteryId;
+  try {
+    state.rows = await getJSON(`/optimization/battery/${state.batteryId}`);
+    $('errorBanner').classList.remove('show');
+  } catch (e) {
+    state.rows = [];
+    showError('Failed to load optimization data for this battery.');
+  }
+  state.runs = groupRuns(state.rows);
+  const latest = latestRun(state.runs);
+  state.latest = latest ? latest.rows : [];
+  state.latestRun = latest;
+  renderAll();
+}
+
+// ── RENDER ──
+function battery() { return state.batteries.find(b => b.battery_id === state.batteryId); }
+
+function fleetRow(b) {
+  const selected = b.battery_id === state.batteryId;
+  const run = selected ? state.latestRun : null;
+  const stats = run ? `
+    <div class="battery-stats">
+      <div class="bstat"><div class="bstat-val ${run.revenue >= 0 ? 'rev-pos' : 'rev-neg'}">${money(run.revenue, 0)}</div><div class="bstat-lbl">Latest run</div></div>
+      <div class="bstat"><div class="bstat-val">${state.runs.length}</div><div class="bstat-lbl">Runs</div></div>
+    </div>` : '';
+  return `<button class="battery-row ${selected ? 'selected' : ''}" data-battery="${b.battery_id}">
+    <div class="battery-icon">${BATTERY_SVG}</div>
+    <div class="battery-info">
+      <div class="battery-name">${esc(b.name)}</div>
+      <div class="battery-meta">${esc(b.location)} · ${esc(b.owner)} · ${esc(b.iso)}</div>
+    </div>${stats}
+  </button>`;
+}
+
+function renderFleet() {
+  const html = state.batteries.length ? state.batteries.map(fleetRow).join('') : '<div class="empty">No batteries found.</div>';
+  $('dashFleet').innerHTML = html;
+  $('fleetList').innerHTML = html;
+  const isos = [...new Set(state.batteries.map(b => b.iso))].join(', ');
+  $('fleetSub').textContent = `${state.batteries.length} asset${state.batteries.length === 1 ? '' : 's'}${isos ? ' · ' + isos : ''}`;
+}
+
+function renderDashboard() {
+  const b = battery(), rows = state.latest, run = state.latestRun;
+  $('dashSub').textContent = b ? `${b.iso} · ${b.owner} · ${b.name}` : 'No battery selected';
+  if (!run) {
+    ['kRevenue', 'kCharged', 'kDischarged', 'kRuns'].forEach(k => $(k).textContent = '—');
+    $('insights').innerHTML = '<div class="empty">No optimization runs yet.</div>';
+    return;
+  }
+  $('kRevenue').textContent = money(run.revenue);
+  $('kRevenue').className = 'kpi-value ' + (run.revenue >= 0 ? 'teal' : 'red');
+  $('kRevenueSub').textContent = `${runLabel(run)} · ${run.date}`;
+  $('kCharged').textContent = mwh(run.charged);
+  $('kChargedSub').textContent = `${rows.filter(r => r.action === 'charge').length} charging hours`;
+  $('kDischarged').textContent = mwh(run.discharged);
+  $('kDischargedSub').textContent = `${rows.filter(r => r.action === 'discharge').length} discharging hours`;
+  $('kRuns').textContent = state.runs.length;
+  $('kRunsSub').textContent = `Latest version: v${run.version}`;
+  $('dashChartSub').textContent = `${runLabel(run)} · ${run.date}`;
+
+  drawDashChart();
+
+  const counts = ['charge', 'discharge', 'hold'].map(a => rows.filter(r => r.action === a).length);
+  $('mCharge').textContent = counts[0] + 'h';
+  $('mDischarge').textContent = counts[1] + 'h';
+  $('mHold').textContent = counts[2] + 'h';
+  draw('mixChart', {
+    type: 'doughnut',
+    data: { labels: ['Charge', 'Discharge', 'Hold'], datasets: [{ data: counts, backgroundColor: [BLUE, TEAL, HOLD], borderWidth: 0, hoverOffset: 4 }] },
+    options: { responsive: true, maintainAspectRatio: false, cutout: '68%', plugins: { legend: { display: false }, tooltip: baseOptions().plugins.tooltip } },
+  });
+
+  // Insights derived from the latest run
+  const items = [];
+  items.push(['success', `<strong>Net ${run.revenue >= 0 ? 'profit' : 'loss'} of ${money(Math.abs(run.revenue))}</strong> on ${esc(runLabel(run))}`]);
+  const peak = rows.reduce((m, r) => r.price_mwh > m.price_mwh ? r : m, rows[0]);
+  const low = rows.reduce((m, r) => r.price_mwh < m.price_mwh ? r : m, rows[0]);
+  if (peak) items.push(['warn', `<strong>Peak price ${money(peak.price_mwh)}/MWh</strong> at hour ${peak.hour} — battery set to ${peak.action}`]);
+  if (low) items.push(['info', `<strong>Lowest price ${money(low.price_mwh)}/MWh</strong> at hour ${low.hour} — battery set to ${low.action}`]);
+  const best = rows.reduce((m, r) => r.revenue > m.revenue ? r : m, rows[0]);
+  if (best && best.revenue > 0) items.push(['success', `<strong>Best hour: ${best.hour}</strong> earned ${money(best.revenue)}`]);
+  $('insights').innerHTML = items.map(([cls, html]) => `<div class="alert-item ${cls}"><div class="alert-dot"></div><div class="alert-text">${html}</div></div>`).join('');
+}
+
+function drawDashChart() {
+  const rows = state.latest;
+  if (!rows.length) return;
+  const tab = state.dashTab;
+  const configs = {
+    soc: { type: 'line', data: { labels: hourLabels(rows), datasets: [{ label: 'SoC (MWh)', data: rows.map(r => r.soc_kw / 1000), borderColor: TEAL, backgroundColor: TEAL_T, fill: true, tension: 0.3, borderWidth: 2, pointRadius: 2 }] }, options: baseOptions('MWh') },
+    revenue: { type: 'bar', data: { labels: hourLabels(rows), datasets: [{ label: 'Revenue ($)', data: rows.map(r => r.revenue), backgroundColor: revColors(rows), borderRadius: 3 }] }, options: baseOptions('$') },
+    power: { type: 'bar', data: { labels: hourLabels(rows), datasets: [
+      { label: 'Charge (MW)', data: rows.map(r => -r.charge_kw / 1000), backgroundColor: 'rgba(59,130,246,0.65)', borderRadius: 2 },
+      { label: 'Discharge (MW)', data: rows.map(r => r.discharge_kw / 1000), backgroundColor: 'rgba(0,212,170,0.65)', borderRadius: 2 },
+    ] }, options: { ...baseOptions('MW', true), scales: { ...baseOptions('MW').scales, x: { ...baseOptions().scales.x, stacked: true }, y: { ...baseOptions('MW').scales.y, stacked: true } } } },
+  };
+  draw('dashChart', configs[tab]);
+}
+
+function renderOptimization() {
+  const b = battery(), rows = state.latest, run = state.latestRun;
+  $('dName').textContent = b ? b.name : '—';
+  $('dSub').textContent = b ? `${b.location} · ${b.iso} · Owner: ${b.owner}` : '';
+  $('optSub').textContent = run ? `${b ? b.name + ' · ' : ''}${runLabel(run)} · ${run.date} · ${run.type}` : 'No runs yet';
+  if (!run) return;
+  $('dRevenue').textContent = money(run.revenue);
+  $('dCharged').textContent = mwh(run.charged);
+  $('dDischarged').textContent = mwh(run.discharged);
+  $('dEndSoc').textContent = mwh(rows.at(-1).soc_kw);
+
+  const maxPrice = Math.max(...rows.map(r => r.price_mwh), 1);
+  $('heatmap').innerHTML = rows.map(r => {
+    const k = 0.4 + Math.min(r.price_mwh / maxPrice, 1) * 0.6;
+    const bg = r.action === 'charge' ? `rgba(59,130,246,${k})` : r.action === 'discharge' ? `rgba(0,212,170,${k})` : 'rgba(42,64,96,0.8)';
+    const label = r.action === 'charge' ? 'C' : r.action === 'discharge' ? 'D' : '—';
+    return `<div class="hm-cell ${r.action === 'hold' ? 'hold' : ''}" style="background:${bg}" title="Hour ${r.hour} · ${money(r.price_mwh)}/MWh · ${esc(r.action)}">${label}</div>`;
+  }).join('');
+  $('hmLabels').innerHTML = rows.map(r => `<div class="hm-label">${r.hour}</div>`).join('');
+
+  if (state.page !== 'optimization') return;  // canvases in hidden pages have no size
+  const maxSoc = Math.max(...rows.map(r => r.soc_kw)) / 1000;
+  draw('socChart', {
+    type: 'line',
+    data: { labels: hourLabels(rows), datasets: [
+      { label: 'SoC', data: rows.map(r => r.soc_kw / 1000), borderColor: TEAL, backgroundColor: TEAL_T, fill: true, tension: 0.3, borderWidth: 2, pointRadius: 2 },
+      { label: 'Peak SoC', data: rows.map(() => maxSoc), borderColor: 'rgba(245,158,11,0.5)', borderDash: [4, 3], borderWidth: 1, pointRadius: 0 },
+    ] },
+    options: baseOptions('MWh', true),
+  });
+  draw('hourlyRevChart', {
+    type: 'bar',
+    data: { labels: hourLabels(rows), datasets: [{ label: 'Revenue', data: rows.map(r => r.revenue), backgroundColor: revColors(rows), borderRadius: 3 }] },
+    options: baseOptions('$'),
+  });
+  draw('priceChart', {
+    type: 'line',
+    data: { labels: hourLabels(rows), datasets: [{ label: 'Price', data: rows.map(r => r.price_mwh), borderColor: AMBER, backgroundColor: 'transparent', tension: 0.35, borderWidth: 2, pointRadius: 2, pointBackgroundColor: rows.map(r => r.action === 'charge' ? BLUE : r.action === 'discharge' ? TEAL : '#5A7FA3') }] },
+    options: baseOptions('$/MWh'),
+  });
+}
+
+function renderSchedule() {
+  const mode = $('viewMode').value;
+  const runs = mode === 'latest' ? (state.latestRun ? [state.latestRun] : []) : [...state.runs].reverse();
+  const rows = runs.flatMap(run => run.rows);
+  $('schedSub').textContent = battery() ? battery().name : '';
+  $('schedCount').textContent = `${runs.length} run${runs.length === 1 ? '' : 's'} · ${rows.length} hours`;
+  $('scheduleBody').innerHTML = rows.length ? rows.map(r => `<tr>
+      <td>#${r.output_id}</td><td>v${r.version}</td><td>${esc(r.date)}</td><td>${r.hour}:00</td>
+      <td class="action-${esc(r.action)}">${esc(cap(r.action))}</td>
+      <td class="num">${r.charge_kw > 0 ? num(r.charge_kw) : '—'}</td>
+      <td class="num">${r.discharge_kw > 0 ? num(r.discharge_kw) : '—'}</td>
+      <td class="num">${num(r.soc_kw)}</td>
+      <td class="num">${money(r.price_mwh)}</td>
+      <td class="num ${r.revenue > 0 ? 'rev-pos' : r.revenue < 0 ? 'rev-neg' : ''}">${signedMoney(r.revenue)}</td>
+    </tr>`).join('') : '<tr><td colspan="10" class="empty">No schedule data.</td></tr>';
+}
+
+function renderHistory() {
+  const runs = state.runs;
+  $('histSub').textContent = battery() ? `${battery().name} · every optimization run` : '';
+  if (!runs.length) { $('historyBody').innerHTML = '<tr><td colspan="7" class="empty">No runs yet.</td></tr>'; return; }
+  const best = runs.reduce((m, r) => r.revenue > m.revenue ? r : m);
+  const worst = runs.reduce((m, r) => r.revenue < m.revenue ? r : m);
+  $('hBest').textContent = money(best.revenue, 0);
+  $('hBestSub').textContent = `${runLabel(best)} · ${best.date}`;
+  $('hWorst').textContent = money(worst.revenue, 0);
+  $('hWorstSub').textContent = `${runLabel(worst)} · ${worst.date}`;
+  $('hAvg').textContent = money(sum(runs, 'revenue') / runs.length, 0);
+  $('hCount').textContent = runs.length;
+  $('hCountSub').textContent = `${new Set(runs.map(r => r.version)).size} versions`;
+  $('historyBody').innerHTML = [...runs].reverse().map(run => `<tr>
+      <td>#${run.output_id}</td><td>v${run.version}</td><td>${esc(run.date)}</td><td>${esc(run.type)}</td>
+      <td class="num">${num(run.charged / 1000)}</td><td class="num">${num(run.discharged / 1000)}</td>
+      <td class="num ${run.revenue >= 0 ? 'rev-pos' : 'rev-neg'}">${money(run.revenue)}</td>
+    </tr>`).join('');
+
+  if (state.page !== 'history') return;
+  draw('historyChart', {
+    type: 'bar',
+    data: { labels: runs.map(runLabel), datasets: [{ label: 'Net revenue', data: runs.map(r => r.revenue), backgroundColor: runs.map(r => r === state.latestRun ? TEAL : r.revenue >= 0 ? 'rgba(0,212,170,0.45)' : 'rgba(244,63,94,0.55)'), borderRadius: 4 }] },
+    options: baseOptions('$'),
+  });
+}
+
+function renderAll() {
+  renderFleet();
+  renderDashboard();
+  renderOptimization();
+  renderSchedule();
+  renderHistory();
+}
+
+// ── NAVIGATION ──
+const PAGE_LABELS = { dashboard: 'Dashboard', fleet: 'Fleet', optimization: 'Optimization', schedule: 'Schedule', history: 'Run History' };
+
+function nav(page) {
+  state.page = page;
+  document.querySelectorAll('.page').forEach(p => p.classList.toggle('active', p.id === 'page-' + page));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.page === page));
+  $('breadcrumb').textContent = PAGE_LABELS[page];
+  if (page === 'dashboard') renderDashboard();
+  if (page === 'optimization') renderOptimization();
+  if (page === 'history') renderHistory();
+}
+
+function exportCSV() {
+  const rows = state.latest;
+  if (!rows.length) return;
+  const cols = ['output_id', 'version', 'date', 'hour', 'action', 'charge_kw', 'discharge_kw', 'soc_kw', 'price_mwh', 'revenue'];
+  const csv = [cols.join(','), ...rows.map(r => cols.map(c => JSON.stringify(r[c] ?? '')).join(','))].join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+  a.download = `${(battery()?.name || 'battery')}_run_${state.latestRun.output_id}.csv`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+document.addEventListener('click', e => {
+  const navBtn = e.target.closest('[data-page]');
+  if (navBtn) return nav(navBtn.dataset.page);
+  const goto = e.target.closest('[data-goto]');
+  if (goto) return nav(goto.dataset.goto);
+  const row = e.target.closest('[data-battery]');
+  if (row) { selectBattery(row.dataset.battery).then(() => nav('optimization')); return; }
+  const tab = e.target.closest('[data-dash]');
+  if (tab) {
+    state.dashTab = tab.dataset.dash;
+    document.querySelectorAll('[data-dash]').forEach(t => t.classList.toggle('active', t === tab));
+    drawDashChart();
+  }
+});
+$('batterySelect').addEventListener('change', e => selectBattery(e.target.value));
+$('viewMode').addEventListener('change', renderSchedule);
+$('exportBtn').addEventListener('click', exportCSV);
+
+loadBatteries();
+</script>
 </body>
 </html>
