@@ -7,3 +7,6 @@ __pycache__/
 *.db-wal
 *.db-shm
 .DS_Store
+
+# Frontend dependencies (reinstall with npm install in frontend/)
+node_modules/
